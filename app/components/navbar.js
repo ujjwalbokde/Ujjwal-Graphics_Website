@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // Define menu items
 const menuItems = [
@@ -14,8 +16,8 @@ const menuItems = [
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false); // Add state to track if user is admin
+  const router = useRouter();
 
   // Toggle the mobile menu
   const toggleMenu = () => {
@@ -23,60 +25,42 @@ function Navbar() {
   };
 
   // Logout function
-  const handleLogout = () => {
-    // Clear the token from local storage
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setUser(null);
-    setIsAdmin(false); // Reset admin state
+  const handleLogout = async () => {
+    try {
+      await axios.get("/api/users/logout");
+      toast.success("Logout successful");
+      setIsLoggedIn(false);
+      setIsAdmin(false); // Reset admin state
+      setUser(null); // Clear user data
+      router.push("/login");
+    } catch (error) {
+      console.log(error.message);
+      toast.error(error.message);
+    }
   };
 
-  // Check login status when the component mounts
+  const [user, setUser] = useState({ username: "", email: "" });
+
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("token");
-        
-        if (!token) {
-          setIsLoggedIn(false);
-          return;
-        }
-    
-        try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me?populate=role`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: 'include',
-          });
-    
-          if (response.ok) {
-            const userData = await response.json();
-            console.log(userData); // Log the entire response to inspect its structure
-    
-            // Assuming the role object is present in the response, check for admin role
-            if (userData.role && userData.role.name === "Administrator") {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
-            }
-    
-            setIsLoggedIn(true);
-            setUser(userData);
-          } else {
-            setIsLoggedIn(false);
-            localStorage.removeItem("token");
-          }
-        } catch (error) {
-          console.error("Error checking login status:", error);
-          setIsLoggedIn(false);
-        }
+    const getUserData = async () => {
+      try {
+        const res = await axios.post("/api/users/me");
+        const data = res.data.data;
+        setUser({
+          username: data.username,
+          email: data.email
+        });
+        setIsLoggedIn(true);
+        setIsAdmin(data.isAdmin);
+      } catch (error) {
+        console.log(error.message);
+        toast.error(error.message);
       }
     };
-    
-
-    checkLoginStatus();
-  }, []); // Ensure this effect runs only once on component mount
+  
+    getUserData();
+  }, []);
+  
 
   return (
     <div className="bg-[#333333] w-full sticky top-0 z-50 text-white">
@@ -145,7 +129,11 @@ function Navbar() {
 
         {/* Mobile menu toggle */}
         <div className="lg:hidden">
-          <Menu onClick={toggleMenu} className="h-6 w-6 cursor-pointer" />
+          <Menu
+            onClick={toggleMenu}
+            className="h-6 w-6 cursor-pointer"
+            aria-expanded={isMenuOpen ? "true" : "false"}
+          />
         </div>
 
         {/* Mobile menu */}
