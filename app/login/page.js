@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 function Login() {
   const router = useRouter();
@@ -13,41 +15,19 @@ function Login() {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   // Form submission handler
-  const onSubmit = async (loginData) => {
-    setIsLoading(true); // Set loading state to true
+  const onSubmit = async (user) => {
     try {
-      // Prepare the payload for login
-      const payload = {
-        identifier: loginData.email, // Use email or username
-        password: loginData.password,
-      };
-
-      // Send POST request to Strapi login endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/local`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
-
-        // Store JWT in localStorage or sessionStorage
-        localStorage.setItem("token", data.jwt);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        // Redirect to the home page or dashboard
+        setIsLoading(true); 
+        const response = await axios.post("/api/users/login", user);
+        console.log("Login success", response.data);
+        toast.success("Login success");
         router.push("/");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData.error.message);
-        alert(`Login failed: ${errorData.error.message}`);
-      }
+
     } catch (error) {
-      console.error("Error logging in:", error);
-      alert("An error occurred while logging in.");
+        console.log("Login failed", error.message);
+        toast.error(error.message);
     } finally {
-      setIsLoading(false); // Reset loading state
+      setIsLoading(false); 
     }
   };
 

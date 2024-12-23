@@ -10,6 +10,7 @@ export async function POST(req) {
   try {
     // Parse the JSON body
     const body = await req.json();
+    console.log(body);
     const { username, email, password } = body;
     // Validate input
     if (!username || !email || !password) {
