@@ -15,63 +15,23 @@ const AddProduct = () => {
   const router = useRouter(); // useRouter for Next.js routing
 
   const onSubmit = async (data) => {
+    // Create the payload for the API request
+    const formData = {
+      itemName: data.itemName,
+      category: data.category,
+      description: data.description,
+      image: data.image,
+      sizesAndPrices: sizePriceList, // Include the sizes and prices in the payload
+    };
+    console.log(formData);
     try {
-      console.log("Form Data:", data);
-
-      const formData = new FormData();
-      formData.append("files", data.image[0]);
-      
-      // Image upload request to Strapi
-      const imageUploadRes = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log("Upload successful:", imageUploadRes.data);
-
-      const uploadedImage = imageUploadRes.data[0];
-      
-      // Prepare product data
-      const productData = {
-        itemName: data.itemName,
-        category: data.category,
-        description: data.description,
-        image: uploadedImage?.id || null,
-        sizePriceList,
-      };
-
-      console.log("Product Data to be sent:", productData);
-
-      // Make the POST request to Strapi
-      const productRes = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/products`,
-        { data: productData },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_STRAPI_TOKEN}`,
-            "Content-Type": "application/json", // Make sure it's application/json
-          },
-        }
-      );
-      
-      console.log("Product added successfully:", productRes.data);
-
-      // Reset form and fields after submission
+      // Make the API request to the backend
+      const response = await axios.post("/api/product/add", formData);
+      console.log("Product added successfully:", response.data);
+      router.push("/"); 
       reset();
-      setSizePriceList([{ size: "", price: "" }]);
-      alert("Product added successfully!");
-      router.push("/"); // Redirect to the products page
     } catch (error) {
-      console.error(
-        "Error adding product:",
-        error.response?.data || error.message || error
-      );
-      alert("Failed to add product");
+      console.error("Error submitting form:", error);
     }
   };
 
@@ -129,15 +89,15 @@ const AddProduct = () => {
             Category:
           </label>
           <select
-  id="category"
-  {...register("category", { required: "Category is required" })}
-  className="mt-1 p-2 block w-full border rounded-md focus:ring-gold focus:border-gold"
->
-  <option value="Trophies and Cups">Trophies and Cups</option>
-  <option value="Medals">Medals</option>
-  <option value="Wooden Momentos">Wooden Momentos</option>
-  <option value="Badges">Badges</option>
-</select>
+            id="category"
+            {...register("category", { required: "Category is required" })}
+            className="mt-1 p-2 block w-full border rounded-md focus:ring-gold focus:border-gold"
+          >
+            <option value="Trophies and Cups">Trophies and Cups</option>
+            <option value="Medals">Medals</option>
+            <option value="Wooden Momentos">Wooden Momentos</option>
+            <option value="Badges">Badges</option>
+          </select>
 
           {errors.category && (
             <p className="text-red-500 text-sm mt-1">
@@ -168,19 +128,18 @@ const AddProduct = () => {
           )}
         </div>
 
-        {/* Image Upload */}
+        {/* Image URL */}
         <div className="mb-4">
           <label
             htmlFor="image"
             className="block text-sm font-medium text-gray-700"
           >
-            Upload Image:
+            Image URL:
           </label>
           <input
-            type="file"
+            type="text"
             id="image"
-            accept="image/*"
-            {...register("image", { required: "Image is required" })}
+            {...register("image")}
             className="mt-1 p-2 block w-full border rounded-md focus:ring-gold focus:border-gold"
           />
           {errors.image && (
