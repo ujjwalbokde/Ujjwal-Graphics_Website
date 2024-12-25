@@ -19,30 +19,28 @@ const Product = () => {
 
   // Fetch products based on the category
   useEffect(() => {
-    if (category) {
-      const fetchProductsByCategory = async () => {
-        try {
-          const { data } = await axios.get(
-            `/api/product/show`
-          );
-          if (data.products && data.products.length > 0) {
-            setProducts(data.products.map((product) => ({ ...product }))); // Set products state from the response
-          } else {
-            setError("No products found for this category.");
-          }
-        } catch (error) {
-          setError(
-            error.response?.data?.message ||
-              "Error fetching products: " + error.message
-          );
-        } finally {
-          setLoading(false); // Stop loading once the fetch is done
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/product/show?category=${category}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          setProducts(data.products);
+        } else {
+          setError(data.message);
         }
-      };
+      } catch (err) {
+        setError('Error fetching products');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchProductsByCategory();
+    if (category) {
+      fetchProducts();
     }
-  }, [category]); // Re-run the effect when category changes
+  }, [category]);
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
   if (error)
@@ -54,7 +52,7 @@ const Product = () => {
       style={{ backgroundColor: "#FFFDD0" }}
     >
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.map((product, i) => (
+        {products && products.map((product, i) => (
           <div
             key={i}
             className="rounded-lg border border-gray-400 bg-[#FFF7BF] shadow-md transition-transform hover:scale-105"
@@ -62,11 +60,9 @@ const Product = () => {
             {/* Product Image */}
             <img
               src={
-                product.image?.[0]?.url
-                  ? `http://localhost:1337${product.image[0].url}`
-                  : "/placeholder.jpg"
+                product.image
               }
-              alt={product.itemName || "Product"}
+              alt={product.image || "Product"}
             />
 
             {/* Product Details */}
@@ -78,13 +74,14 @@ const Product = () => {
                 {product.description}
               </p>
 
+
               {/* Size and Price List */}
               <div className="mt-4">
                 <h2 className="text-sm font-semibold text-gray-700">
                   Sizes and Prices:
                 </h2>
                 <ul className="mt-2 space-y-1 text-sm">
-                  {product.sizePriceList?.map((sizePrice, index) => (
+                  {product.sizesPrices?.map((sizePrice, index) => (
                     <li
                       key={index}
                       className="flex justify-between text-gray-600"

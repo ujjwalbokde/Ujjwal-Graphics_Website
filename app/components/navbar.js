@@ -87,7 +87,7 @@ function Navbar() {
             {isAdmin && (
               <li>
                 <Link
-                  href="/addProduct"
+                  href="/addproduct"
                   className="inline-flex items-center text-lg pt-1 font-semibold text-gray-300 hover:text-gray-500"
                 >
                   Add New Product
