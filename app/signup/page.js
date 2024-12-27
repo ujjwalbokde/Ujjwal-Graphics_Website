@@ -27,6 +27,7 @@ const SignUp = () => {
           console.log("Error in signUp "+ response.data.message);
         }
     } catch (error) {
+      setError(error.message)
         console.error("Error registering user:", error.response?.data || error.message);
         toast.error(error.response?.data?.message || "Something went wrong.");
     }finally{
