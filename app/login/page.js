@@ -10,7 +10,7 @@ import axios from 'axios';
 function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false); // Loading state
-
+  const [error, setError] = useState("")
   // Use React Hook Form
   const { register, handleSubmit, formState: { errors } } = useForm();
 
@@ -19,9 +19,15 @@ function Login() {
     try {
         setIsLoading(true); 
         const response = await axios.post("/api/users/login", user);
-        console.log("Login success", response.data);
-        toast.success("Login success");
-        router.push("/");
+        if(response.data.status===200){
+          console.log("Login success", response.data);
+          toast.success("Login success");
+          router.push("/");
+        }
+        else{
+          setError(response.data.message);
+          console.log("Login failed "+ response.data.message);
+        }
 
     } catch (error) {
         console.log("Login failed", error.message);
@@ -100,6 +106,10 @@ function Login() {
                 {isLoading ? 'Logging in...' : 'Get started'} <ArrowRight className="ml-2" size={16} />
               </button>
             </div>
+
+            {error && (
+              <h1 className=' text-center text-red-600'>{error}</h1>
+            )}
           </form>
 
           {/* Google Sign-in Button */}
