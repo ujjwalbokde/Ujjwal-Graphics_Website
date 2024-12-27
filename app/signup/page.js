@@ -11,16 +11,21 @@ const SignUp = () => {
   const { register, handleSubmit, formState: { errors } } = useForm(); // Initialize react-hook-form
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState("")
   // Updated onSubmit function
 
   const onSubmit = async (user) => {
     try {
         setLoading(true)
         const response = await axios.post("/api/users/signup", user);
-        console.log(response);
-        console.log("User registered:", response.data);
-        router.push("/login")
+        if(response.data.status==200){
+          console.log("User registered:", response.data);
+          router.push("/login")
+        }
+        else{
+          setError(response.data.message)
+          console.log("Error in signUp "+ response.data.message);
+        }
     } catch (error) {
         console.error("Error registering user:", error.response?.data || error.message);
         toast.error(error.response?.data?.message || "Something went wrong.");
@@ -85,6 +90,9 @@ const SignUp = () => {
                   <ArrowRight className="ml-2" size={16} />
                 </button>
               </div>
+              {error && (
+              <h1 className=' text-center text-red-600'>{error}</h1>
+            )}
             </form>
           </div>
         </div>

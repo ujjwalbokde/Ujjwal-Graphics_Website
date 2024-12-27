@@ -15,8 +15,7 @@ export async function POST(req) {
     // Validate input
     if (!username || !email || !password) {
       return NextResponse.json(
-        { message: "Please fill all the fields" },
-        { status: 400 }
+        { message: "Please fill all the fields" ,status: 400 },
       );
     }
 
@@ -24,8 +23,7 @@ export async function POST(req) {
     const user = await User.findOne({ email });
     if (user) {
       return NextResponse.json(
-        { message: "Email already exists" },
-        { status: 400 }
+        { message: "Email already exists",status: 400  },
       );
     }
 
@@ -42,14 +40,15 @@ export async function POST(req) {
 
     // Respond with success
     return NextResponse.json(
-      { message: "User registered successfully" },
-      { status: 201 }
+      { message: "User registered successfully" , 
+        status:200
+      },
+      
     );
   } catch (error) {
     // Handle errors
     return NextResponse.json(
-      { message: error.message },
-      { status: 400 }
+      { message: error.message,status: 400  },
     );
   }
 }
